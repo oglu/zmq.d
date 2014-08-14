@@ -1,6 +1,6 @@
 {
 	"name": "dzmq",
-	"description": "A D-fluent wrapper for zmq",
+	"description": "A higher level, idiomatic zmq wrapper for the D language.",
 	"copyright": "Copyright © 2014, Tasos Vogiatzoglou",
 	"authors": ["Tasos Vogiatzlgou"],
     "license": "LGPL v3",
