@@ -6,5 +6,6 @@
     "license": "LGPL v3",
 	"dependencies": {
         "zeromq": "~master"
-	}
+	},
+    "targetType": "library"
 }

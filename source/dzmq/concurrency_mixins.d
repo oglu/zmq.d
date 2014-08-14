@@ -18,15 +18,16 @@ mixin template DefaultConcurrencyPolicy() {
 
             if (frames.length==1) {
                 rc = zmq_send(_sock, frames[0].ptr, frames[0].length, 0);
+                if (rc<0) throw new ZmqException("Error on write");
                 return;
             }
 
             foreach(frame; frames[0..frames.length-1]){
                 rc = zmq_send(_sock, frame.ptr, frame.length, ZMQ_SNDMORE);
+                if (rc<0) throw new ZmqException("Error on write");
             }
             rc = zmq_send(_sock, frames[frames.length-1].ptr, frames[frames.length-1].length, 0);
-
-            writeln("Wrote");
+            if (rc<0) throw new ZmqException("Error on write");
         }
     }
 
@@ -44,9 +45,8 @@ mixin template DefaultConcurrencyPolicy() {
             scope string[] frames;
             do {
                 zmq_msg_init(&frame);
-                writeln("Reading");
                 rc = zmq_recvmsg(_sock, &frame, 0);
-                writeln("rc of read: ", rc);
+                if (rc<0) throw new ZmqException("Error on read");
                 buffer = (cast(char*)zmq_msg_data(&frame));
                 frames ~= buffer[0..zmq_msg_size(&frame)].to!string;
                 zmq_getsockopt(_sock, ZMQ_RCVMORE, &more, &more_size);
@@ -105,7 +105,7 @@ version(Have_vibe_d) {
         }
 
         mixin template WriteableSocket() {
-            void send(string[] frames, Duration timeout=1.seconds) {
+            void send(string[] frames, Duration timeout=100.msecs) {
 		        scope(exit) _busy=false;
 
                 synchronized(_writeMutex) {
@@ -119,12 +119,15 @@ version(Have_vibe_d) {
 
                     if (frames.length==1) {
                         rc = zmq_send(_sock, frames[0].ptr, frames[0].length, 0);
+                        if (rc<0) throw new ZmqException("Error on write");
                         return;
                     } else {
                         foreach(part; frames[0..frames.length-1]){
                             rc = zmq_send(_sock, part.ptr, part.length, ZMQ_SNDMORE);
+                            if (rc<0) throw new ZmqException("Error on write");
                         }
                         rc = zmq_send(_sock, frames[frames.length-1].ptr, frames[frames.length-1].length, 0);
+                        if (rc<0) throw new ZmqException("Error on write");
                     }
 
                     // we need that to reset the zmq_events as per the zmq manual
@@ -136,7 +139,7 @@ version(Have_vibe_d) {
         }
 
         mixin template ReadableSocket() {
-            string[] receive(Duration timeout=1.seconds) {
+            string[] receive(Duration timeout=100.msecs) {
                 scope(exit) _busy=false;
 
                 synchronized(_readMutex) {
@@ -155,6 +158,7 @@ version(Have_vibe_d) {
                         do {
                             zmq_msg_init(&frame);
                             rc = zmq_recvmsg(_sock, &frame, 0);
+                            if (rc<0) throw new ZmqException("Error on read");
                             buffer = (cast(char*)zmq_msg_data(&frame));
                             frames ~= buffer[0..zmq_msg_size(&frame)].to!string;
                             zmq_getsockopt(_sock, ZMQ_RCVMORE, &more, &more_size);

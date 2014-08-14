@@ -29,6 +29,12 @@ class ZmqTimeout: Exception {
     }
 }
 
+class ZmqException: ErrnoException {
+    this(string msg) {
+        super(msg);
+    }
+}
+
 class ZmqContext {
     private {
         immutable void * _ctx;
@@ -103,30 +109,32 @@ class ZmqSocket(ZmqSocketType type, alias ConcurrencyPolicy = DefaultConcurrency
         static if(is(typeof(__onConnect))) __onClose();
         debug { writeln("Closed socket"); }
         int rc = zmq_close(_sock);
+        if (rc!=0) throw new ZmqException("Error on close");
     }
 
     void connect(string endpoint) {
         int rc = zmq_connect(_sock, endpoint.toStringz);
         writeln("Connecting rc is %d", rc);
-        if (rc!=0) throw new ErrnoException("Error on connecting");
+        if (rc!=0) throw new ZmqException("Error on connecting");
 
         static if(is(typeof(__onConnect))) __onConnect();
     }
 
     void disconnect(string endpoint = null) {
         int rc = zmq_disconnect(_sock, endpoint.toStringz);
+        if (rc!=0) throw new ZmqException("Error on disconnect");
     }
 
     void bind(string endpoint) {
         int rc = zmq_bind(_sock, endpoint.toStringz);
-        writeln("Bind rc is %d", rc);
-        if (rc!=0) throw new ErrnoException("Error on binding");
+        if (rc!=0) throw new ZmqException("Error on binding");
 
         static if(is(typeof(__onConnect))) __onBind();
     }
 
     void unbind(string endpoint) {
         int rc = zmq_unbind(_sock, endpoint.toStringz);
+        if (rc!=0) throw new ZmqException("Error on unbind");
     }
 
     @property bool isBusy() { return _busy; }
