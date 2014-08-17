@@ -1,4 +1,4 @@
-dzmq
+zmq.d
 ====
 
 A higher level, idiomatic zmq wrapper for the D language.
@@ -31,5 +31,9 @@ auto sock = ctx.socket!(ZmqSocketType.Req, VibeDConcurrencyPolicy)();
 sock.connect("tcp://localhost:1234");
 ```
 
+TBD
+====
 
+* Callbacks on messages
+* Threading support
 
