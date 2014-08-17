@@ -1,0 +1,7 @@
+__*
+*.a
+.dub
+dzmq
+docs
+docs.json
+*.swp
