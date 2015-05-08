@@ -109,6 +109,7 @@ class ZmqSocket(ZmqSocketType type, alias ConcurrencyPolicy = DefaultConcurrency
         static if(is(typeof(__onConnect))) __onClose();
         debug { writeln("Closed socket"); }
         int rc = zmq_close(_sock);
+        _closed = true;
         if (rc!=0) throw new ZmqException("Error on close");
     }
 
